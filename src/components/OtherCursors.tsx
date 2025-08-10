@@ -5,6 +5,7 @@ import { MousePointer2 } from 'lucide-react';
 function Cursor({ x, y, name }: { x: number; y: number; name?: string }) {
   return (
     <div
+      data-testid="cursor"
       className="absolute top-0 left-0 text-blue-500 pointer-events-none"
       style={{
         transform: `translate(${x}px, ${y}px)`,
@@ -24,7 +25,7 @@ function Cursor({ x, y, name }: { x: number; y: number; name?: string }) {
 // The main component to render all other users' cursors
 export function OtherCursors() {
   const cursors = useCanvasStore((state) => state.otherCursors);
-
+  console.log('cursors:', cursors);
   return (
     <>
       {Object.entries(cursors).map(([userId, cursorData]) => (
