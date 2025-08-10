@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -11,18 +11,33 @@ import { ComponentPalette } from '@/components/ComponentPalette';
 import { PropertiesPanel } from '@/components/PropertiesPanel';
 import { TopBar } from '@/components/TopBar';
 import { OtherCursors } from '@/components/OtherCursors';
-import { MOCK_COMPONENTS } from '@/utils/mock-components';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useThrottle } from '@/hooks/useThrottle';
 import { socketService } from '@/services/socket';
+import { ContextMenu } from '@/components/ContextMenu';
+import CustomNode from '@/components/CustomNode';
+
+const nodeTypes = {
+  custom: CustomNode,
+};
 
 let id = 4; // Start IDs after initial nodes
 const getId = () => `${id++}`;
 
 function DesignerPage() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useCanvasStore();
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    addNode,
+    componentLibrary,
+    setNodeEditing,
+  } = useCanvasStore();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { project } = useReactFlow();
+  const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null);
 
   useAutoSave();
 
@@ -50,7 +65,7 @@ function DesignerPage() {
       const typeId = event.dataTransfer.getData('application/reactflow');
       if (typeof typeId === 'undefined' || !typeId) return;
 
-      const component = MOCK_COMPONENTS.find(c => c.id === typeId);
+      const component = componentLibrary.find((c) => c.id === typeId);
       if (!component) return;
 
       const bounds = reactFlowWrapper.current!.getBoundingClientRect();
@@ -65,18 +80,35 @@ function DesignerPage() {
         data: {
           componentId: component.id,
           label: component.name,
-          props: { ...component.defaultProps },
+          // The component model from the API doesn't have `defaultProps`.
+          // We'll use the `props` field, which should contain the defaults from the backend.
+          props: { ...component.props },
         },
       };
       addNode(newNode);
     },
-    [project, addNode]
+    [project, addNode, componentLibrary]
   );
+
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      event.preventDefault();
+      const bounds = reactFlowWrapper.current!.getBoundingClientRect();
+      setMenu({
+        id: node.id,
+        top: event.clientY - bounds.top,
+        left: event.clientX - bounds.left,
+      });
+    },
+    [setMenu]
+  );
+
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
   return (
     <div className="flex h-full w-full">
       <ComponentPalette />
-      <div className="flex-grow h-full relative" ref={reactFlowWrapper}>
+      <div className="flex-grow h-full relative" ref={reactFlowWrapper} onClick={onPaneClick}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -86,6 +118,8 @@ function DesignerPage() {
           onDragOver={onDragOver}
           onDrop={onDrop}
           onPaneMouseMove={onPaneMouseMove}
+          onNodeContextMenu={onNodeContextMenu}
+          nodeTypes={nodeTypes}
           fitView
         >
           <Background />
@@ -94,6 +128,18 @@ function DesignerPage() {
           <OtherCursors />
         </ReactFlow>
         <TopBar />
+        {menu && (
+          <ContextMenu
+            top={menu.top}
+            left={menu.left}
+            onClose={() => setMenu(null)}
+            onEdit={() => {
+              if (menu) {
+                setNodeEditing(menu.id, true);
+              }
+            }}
+          />
+        )}
       </div>
       <PropertiesPanel />
     </div>

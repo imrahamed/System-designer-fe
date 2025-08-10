@@ -1,8 +1,19 @@
+import { useState, useEffect } from 'react';
 import { useCanvasStore, useTemporalStore } from '@/store/canvasStore';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Save, FolderOpen, Undo2, Redo2, ShieldCheck, Wand } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Sparkles, Save, FolderOpen, Undo2, Redo2, ShieldCheck, Wand, PlusCircle, ChevronsUpDown } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { TemplatePicker } from './TemplatePicker';
+import * as api from '@/services/api';
+import type { Design } from '@/types/api';
 
 export function TopBar() {
   const {
@@ -10,18 +21,29 @@ export function TopBar() {
     aiLoading,
     saveDesign,
     loadDesign,
+    createNewDesign,
     isSaving,
     isLoading,
     designId,
   } = useCanvasStore();
   const { undo, redo, pastStates, futureStates } = useTemporalStore((state) => state);
+  const [designs, setDesigns] = useState<Design[]>([]);
+
+  useEffect(() => {
+    // Fetch designs when the component mounts
+    api.getAllDesigns().then(setDesigns).catch(console.error);
+  }, [designId]); // Refetch when designId changes, e.g., after creating a new one
 
   const handleAIAction = (actionType: string) => () => executeAIAction(actionType);
   const handleSave = () => saveDesign();
-  const handleLoad = () => {
-    const idToLoad = window.prompt("Enter the ID of the design to load:", designId || '');
-    if (idToLoad) loadDesign(idToLoad);
+  const handleNewDesign = () => {
+    const title = window.prompt("Enter a title for the new design:", "New Design");
+    if (title) {
+      createNewDesign(title, "A new design created from the editor.");
+    }
   };
+
+  const currentDesign = designs.find(d => d.id === designId);
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background p-2 rounded-lg shadow-md border flex items-center gap-2">
@@ -35,34 +57,52 @@ export function TopBar() {
 
       <div className="border-l h-6 mx-2" />
 
-      {/* AI Actions */}
-      <Button variant="outline" size="sm" onClick={handleAIAction('EXPLAIN_DESIGN')} disabled={aiLoading}>
-        <Sparkles className="h-4 w-4 mr-2" />
-        Explain
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleAIAction('REFACTOR')} disabled={aiLoading}>
-        <Sparkles className="h-4 w-4 mr-2" />
-        Refactor
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleAIAction('AUTO_COMPLETE')} disabled={aiLoading}>
-        <Wand className="h-4 w-4 mr-2" />
-        Auto-Complete
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleAIAction('SECURITY_AUDIT')} disabled={aiLoading}>
-        <ShieldCheck className="h-4 w-4 mr-2" />
-        Security Audit
+      {/* Project Management */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-48 justify-between">
+            <span>{currentDesign?.title || "Select a Design"}</span>
+            <ChevronsUpDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48">
+          <DropdownMenuLabel>Your Designs</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {designs.map(design => (
+            <DropdownMenuItem key={design.id} onSelect={() => loadDesign(design.id)} disabled={isLoading}>
+              {design.title}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Button variant="outline" size="icon" onClick={handleNewDesign} disabled={isLoading} title="New Design">
+        <PlusCircle className="h-4 w-4" />
       </Button>
 
       <div className="border-l h-6 mx-2" />
 
-      {/* Save/Load Actions */}
-      <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? 'Saving...' : 'Save'}
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleLoad} disabled={isLoading}>
-        <FolderOpen className="h-4 w-4 mr-2" />
-        Load
+      {/* AI Actions */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI Actions
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleAIAction('EXPLAIN_DESIGN')} disabled={aiLoading}>Explain Design</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAIAction('REFACTOR')} disabled={aiLoading}>Refactor</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAIAction('AUTO_COMPLETE')} disabled={aiLoading}>Auto-Complete</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAIAction('SECURITY_AUDIT')} disabled={aiLoading}>Security Audit</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <div className="border-l h-6 mx-2" />
+
+      {/* Save & Templates */}
+      <Button variant="outline" size="icon" onClick={handleSave} disabled={isSaving} title="Save">
+        <Save className="h-4 w-4" />
       </Button>
       <TemplatePicker />
 

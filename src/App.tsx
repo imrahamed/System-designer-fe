@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import DesignerPage from './pages/DesignerPage';
+import DesignerPageWrapper from './pages/DesignerPage';
 import { useCanvasStore } from './store/canvasStore';
 import { Toaster } from '@/components/ui/sonner';
 import type { CursorData } from './store/canvasStore';
@@ -32,7 +32,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="h-screen w-screen bg-background text-foreground">
-        <DesignerPage />
+        <DesignerPageWrapper />
         <Toaster />
       </div>
     </ThemeProvider>

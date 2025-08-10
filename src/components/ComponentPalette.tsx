@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { ComponentData } from '@/utils/mock-components';
+import type { Component } from '@/types/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCanvasStore } from '@/store/canvasStore';
 import { motion } from 'framer-motion';
@@ -37,7 +37,7 @@ export function ComponentPalette() {
       }
       acc[component.category].push(component);
       return acc;
-    }, {} as Record<string, ComponentData[]>);
+    }, {} as Record<string, Component[]>);
   }, [componentLibrary]);
 
   return (
