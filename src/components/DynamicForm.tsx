@@ -22,7 +22,7 @@ import { validateProperties } from '@/services/api';
 
 interface DynamicFormProps {
   componentId: string;
-  schema: z.ZodObject<any, any, any>;
+  schema: z.ZodObject<any>;
   defaultValues: Record<string, any>;
   onSubmitSuccess: (values: Record<string, any>) => void;
 }
@@ -75,11 +75,11 @@ export function DynamicForm({ componentId, schema, defaultValues, onSubmitSucces
                   <FormLabel>{key}</FormLabel>
                   <FormControl>
                     {fieldType === 'ZodString' ? (
-                      <Input {...field} />
+                      <Input {...field} value={field.value as string} />
                     ) : fieldType === 'ZodNumber' ? (
-                      <Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
+                      <Input type="number" {...field} value={field.value as number} onChange={e => field.onChange(e.target.valueAsNumber)} />
                     ) : fieldType === 'ZodEnum' ? (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value as string}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={`Select a ${key}`} />
@@ -92,7 +92,7 @@ export function DynamicForm({ componentId, schema, defaultValues, onSubmitSucces
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Input {...field} />
+                      <Input {...field} value={field.value as string} />
                     )}
                   </FormControl>
                   <FormMessage />

@@ -30,7 +30,7 @@ export interface ComponentData {
   id: string;
   name: string;
   category: 'Compute' | 'Database' | 'Messaging' | 'API';
-  schema: z.ZodObject<any, any, any>;
+  schema: z.ZodObject<any>;
   defaultProps: z.infer<this['schema']>;
   iacSnippet: string;
   docs: string;

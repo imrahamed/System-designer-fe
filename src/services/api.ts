@@ -1,4 +1,5 @@
-import { MOCK_COMPONENTS, ComponentData } from '@/utils/mock-components';
+import { MOCK_COMPONENTS } from '@/utils/mock-components';
+import type { ComponentData } from '@/utils/mock-components';
 
 // This function simulates fetching data from a remote API.
 // In a real application, this would be an actual HTTP request.
@@ -32,7 +33,7 @@ export const validateProperties = (
 
       if (!result.success) {
         // Format Zod errors into a shape that react-hook-form can use
-        const formattedErrors = result.error.flatten().fieldErrors;
+        const formattedErrors = result.error.flatten().fieldErrors as Record<string, string[]>;
         resolve({ success: false, errors: formattedErrors });
       } else {
         resolve({ success: true });
@@ -79,7 +80,6 @@ export const executeAIAction = (
           message: "This is a simple client-server architecture. An API Gateway routes requests to two backend services, Service A and Service B.",
         });
       } else if (request.actionType === 'REFACTOR' && request.design.nodes.length > 0) {
-        const targetNodeId = request.design.nodes[0].id;
         resolve({
             success: true,
             message: "Suggested refactoring: Renamed Service A for clarity.",
@@ -141,7 +141,7 @@ export const saveDesign = (design: Design): Promise<{ success: boolean, id: stri
 };
 
 export const loadDesign = (id: string): Promise<{ success: boolean, design?: Design }> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       console.log(`Attempting to load mock design with ID: ${id}`);
       if (savedDesign) {

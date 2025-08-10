@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import DesignerPage from './pages/DesignerPage';
-import { useCanvasStore, CursorData } from './store/canvasStore';
+import { useCanvasStore } from './store/canvasStore';
 import { Toaster } from '@/components/ui/sonner';
-import { socketService } from './services/socket';
-import { EdgeChange, NodeChange } from 'reactflow';
+import type { CursorData } from './store/canvasStore';
+import type { EdgeChange, NodeChange } from 'reactflow';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { socketService } from './services/socket';
 
 function App() {
   const {

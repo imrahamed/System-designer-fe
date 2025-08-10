@@ -1,4 +1,4 @@
-import { useCanvasStore } from '@/store/canvasStore';
+import { useCanvasStore, useTemporalStore } from '@/store/canvasStore';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Save, FolderOpen, Undo2, Redo2, ShieldCheck, Wand } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
@@ -13,11 +13,8 @@ export function TopBar() {
     isSaving,
     isLoading,
     designId,
-    undo,
-    redo,
-    isUndoable,
-    isRedoable,
   } = useCanvasStore();
+  const { undo, redo, pastStates, futureStates } = useTemporalStore((state) => state);
 
   const handleAIAction = (actionType: string) => () => executeAIAction(actionType);
   const handleSave = () => saveDesign();
@@ -29,10 +26,10 @@ export function TopBar() {
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background p-2 rounded-lg shadow-md border flex items-center gap-2">
       {/* History Actions */}
-      <Button variant="outline" size="icon" onClick={undo} disabled={!isUndoable} title="Undo">
+      <Button variant="outline" size="icon" onClick={() => undo()} disabled={pastStates.length === 0} title="Undo">
         <Undo2 className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="icon" onClick={redo} disabled={!isRedoable} title="Redo">
+      <Button variant="outline" size="icon" onClick={() => redo()} disabled={futureStates.length === 0} title="Redo">
         <Redo2 className="h-4 w-4" />
       </Button>
 

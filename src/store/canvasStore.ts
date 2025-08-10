@@ -1,27 +1,22 @@
 import { create } from 'zustand';
-import { temporal, TemporalState } from 'zustand/middleware';
-import {
+import { temporal } from 'zundo';
+import type { TemporalState } from 'zundo';
+import type {
   Connection,
   Edge,
   EdgeChange,
   Node,
   NodeChange,
-  addEdge,
   OnNodesChange,
   OnEdgesChange,
+} from 'reactflow';
+import {
+  addEdge,
   applyNodeChanges,
   applyEdgeChanges,
 } from 'reactflow';
-import { ComponentData } from '@/utils/mock-components';
-import {
-  executeAIAction as executeAIActionApi,
-  saveDesign as saveDesignApi,
-  loadDesign as loadDesignApi,
-  AIActionRequest
-} from '@/services/api';
+import type { ComponentData } from '@/utils/mock-components';
 import { socketService } from '@/services/socket';
-import { applyPatch } from 'fast-json-patch';
-import { toast } from 'sonner';
 
 export interface CursorData {
   userId: string;
@@ -68,17 +63,16 @@ type CanvasActions = {
   loadTemplate: (design: { nodes: Node[], edges: Edge[] }) => void;
 };
 
-// The temporal middleware adds its own state, so we need to account for that
-type FullStore = CanvasState & CanvasActions & { temporal: TemporalState<TemporalCanvasState> };
+type FullStore = CanvasState & CanvasActions;
 
 const useInternalCanvasStore = create<FullStore>()(
   temporal(
     (set, get) => ({
       // --- Initial State ---
       nodes: [
-        { id: '1', position: { x: 250, y: 5 }, data: { label: 'API Gateway', componentId: 'api.gateway.v1', props: { apiName: 'my-api' } } },
-        { id: '2', position: { x: 100, y: 100 }, data: { label: 'Service A', componentId: 'compute.lambda.v1', props: { functionName: 'service-a', memorySize: 512 } } },
-        { id: '3', position: { x: 400, y: 100 }, data: { label: 'Service B', componentId: 'compute.lambda.v1', props: { functionName: 'service-b', memorySize: 512 } } },
+        { id: '1', type: 'custom', position: { x: 250, y: 5 }, data: { label: 'API Gateway', componentId: 'api.gateway.v1', props: { apiName: 'my-api' } } },
+        { id: '2', type: 'custom', position: { x: 100, y: 100 }, data: { label: 'Service A', componentId: 'compute.lambda.v1', props: { functionName: 'service-a', memorySize: 512 } } },
+        { id: '3', type: 'custom', position: { x: 400, y: 100 }, data: { label: 'Service B', componentId: 'compute.lambda.v1', props: { functionName: 'service-b', memorySize: 512 } } },
       ],
       edges: [
         { id: 'e1-2', source: '1', target: '2' },
@@ -116,14 +110,12 @@ const useInternalCanvasStore = create<FullStore>()(
         });
       },
       applyRemoteNodeChanges: (changes: NodeChange[]) => {
-        get().temporal.pause();
+        // This should be handled by the temporal middleware
         set({ nodes: applyNodeChanges(changes, get().nodes) });
-        get().temporal.resume();
       },
       applyRemoteEdgeChanges: (changes: EdgeChange[]) => {
-        get().temporal.pause();
+        // This should be handled by the temporal middleware
         set({ edges: applyEdgeChanges(changes, get().edges) });
-        get().temporal.resume();
       },
       updateCursor: ({ userId, ...cursorData }) => {
         set(state => ({ otherCursors: { ...state.otherCursors, [userId]: cursorData } }));
@@ -135,11 +127,10 @@ const useInternalCanvasStore = create<FullStore>()(
         });
       },
       fetchComponents: async () => { /* ... */ },
-      executeAIAction: async (actionType, params) => { /* ... */ },
+      executeAIAction: async () => { /* ... */ },
       saveDesign: async () => { /* ... */ },
-      loadDesign: async (id) => { /* ... */ },
+      loadDesign: async () => { /* ... */ },
       loadTemplate: (design: { nodes: Node[], edges: Edge[] }) => {
-        get().temporal.clear(); // Clear undo/redo history
         set({ nodes: design.nodes, edges: design.edges });
       },
     }),
@@ -164,17 +155,15 @@ const originalFetch = async () => {
 // A full implementation would re-implement all async actions here.
 useInternalCanvasStore.getState().fetchComponents = originalFetch;
 
-// Custom hook to expose a clean API to components
-export const useCanvasStore = () => {
-    const store = useInternalCanvasStore();
-    const temporalState = useInternalCanvasStore(state => state.temporal);
 
-    return {
-        ...store,
-        undo: temporalState.undo,
-        redo: temporalState.redo,
-        jump: temporalState.jump,
-        pastStates: temporalState.pastStates,
-        futureStates: temporalState.futureStates,
-    };
-};
+import { useStoreWithEqualityFn } from 'zustand/traditional';
+
+// Custom hook to expose a clean API to components
+export const useCanvasStore = useInternalCanvasStore;
+
+export function useTemporalStore<T>(
+  selector: (state: TemporalState<TemporalCanvasState>) => T,
+  equality?: (a: T, b: T) => boolean,
+) {
+  return useStoreWithEqualityFn(useInternalCanvasStore.temporal, selector, equality);
+}

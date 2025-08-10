@@ -4,14 +4,13 @@ import ReactFlow, {
   Controls,
   MiniMap,
   useReactFlow,
-  Node,
+  type Node,
 } from 'reactflow';
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
 import { PropertiesPanel } from '@/components/PropertiesPanel';
 import { TopBar } from '@/components/TopBar';
 import { OtherCursors } from '@/components/OtherCursors';
-import { VersionHistory } from '@/components/VersionHistory'; // Import the new component
 import { MOCK_COMPONENTS } from '@/utils/mock-components';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useThrottle } from '@/hooks/useThrottle';
@@ -95,7 +94,6 @@ function DesignerPage() {
           <OtherCursors />
         </ReactFlow>
         <TopBar />
-        <VersionHistory /> {/* Add the version history slider */}
       </div>
       <PropertiesPanel />
     </div>

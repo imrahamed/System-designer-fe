@@ -6,7 +6,6 @@ export function useThrottle<T extends (...args: any[]) => any>(
   delay: number
 ) {
   const callbackRef = useRef(callback);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastArgsRef = useRef<Parameters<T> | null>(null);
   const isThrottled = useRef(false);
 

@@ -1,6 +1,5 @@
 import { useCanvasStore } from '@/store/canvasStore';
 import { MousePointer2 } from 'lucide-react';
-import { shallow } from 'zustand/shallow';
 
 // A simple component to render a cursor
 function Cursor({ x, y, name }: { x: number; y: number; name?: string }) {
@@ -24,7 +23,7 @@ function Cursor({ x, y, name }: { x: number; y: number; name?: string }) {
 
 // The main component to render all other users' cursors
 export function OtherCursors() {
-  const cursors = useCanvasStore((state) => state.otherCursors, shallow);
+  const cursors = useCanvasStore((state) => state.otherCursors);
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ComponentData } from '@/utils/mock-components';
+import type { ComponentData } from '@/utils/mock-components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCanvasStore } from '@/store/canvasStore';
 import { motion } from 'framer-motion';

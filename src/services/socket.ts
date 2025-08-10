@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { EdgeChange, NodeChange } from 'reactflow';
-import { CursorData } from '@/store/canvasStore';
+import type { EdgeChange, NodeChange } from 'reactflow';
+import type { CursorData } from '@/store/canvasStore';
 
 const SOCKET_URL = 'http://localhost:3001';
 
