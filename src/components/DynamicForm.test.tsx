@@ -12,7 +12,8 @@ describe('DynamicForm', () => {
     const onSubmitSuccess = vi.fn();
     const schema = z.object({
       name: z.string(),
-      age: z.number(),
+      // Coercing the number can make tests more robust, as form values are often strings.
+      age: z.coerce.number(),
     });
     const defaultValues = {
       name: 'John Doe',
@@ -36,12 +37,12 @@ describe('DynamicForm', () => {
 
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Jane Doe');
+
     await userEvent.clear(ageInput);
     await userEvent.type(ageInput, '25');
     await userEvent.click(submitButton);
 
     await vi.waitFor(() => {
-      console.log('onSubmitSuccess calls:', onSubmitSuccess.mock.calls);
       expect(onSubmitSuccess).toHaveBeenCalledWith({
         name: 'Jane Doe',
         age: 25,

@@ -17,8 +17,6 @@ import type { Design } from '@/types/api';
 
 export function TopBar() {
   const {
-    executeAIAction,
-    aiLoading,
     saveDesign,
     loadDesign,
     createNewDesign,
@@ -34,7 +32,6 @@ export function TopBar() {
     api.getAllDesigns().then(setDesigns).catch(console.error);
   }, [designId]); // Refetch when designId changes, e.g., after creating a new one
 
-  const handleAIAction = (actionType: string) => () => executeAIAction(actionType);
   const handleSave = () => saveDesign();
   const handleNewDesign = () => {
     const title = window.prompt("Enter a title for the new design:", "New Design");
@@ -79,24 +76,6 @@ export function TopBar() {
       <Button variant="outline" size="icon" onClick={handleNewDesign} disabled={isLoading} title="New Design">
         <PlusCircle className="h-4 w-4" />
       </Button>
-
-      <div className="border-l h-6 mx-2" />
-
-      {/* AI Actions */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Actions
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={handleAIAction('EXPLAIN_DESIGN')} disabled={aiLoading}>Explain Design</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAIAction('REFACTOR')} disabled={aiLoading}>Refactor</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAIAction('AUTO_COMPLETE')} disabled={aiLoading}>Auto-Complete</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAIAction('SECURITY_AUDIT')} disabled={aiLoading}>Security Audit</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
 
       <div className="border-l h-6 mx-2" />
 

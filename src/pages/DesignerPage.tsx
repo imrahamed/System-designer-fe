@@ -8,7 +8,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
-import { PropertiesPanel } from '@/components/PropertiesPanel';
+import { RightSidebar } from '@/components/RightSidebar';
 import { TopBar } from '@/components/TopBar';
 import { OtherCursors } from '@/components/OtherCursors';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -141,7 +141,7 @@ function DesignerPage() {
           />
         )}
       </div>
-      <PropertiesPanel />
+      <RightSidebar />
     </div>
   );
 }
