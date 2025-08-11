@@ -6,22 +6,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import type { LoginRequest } from '@/types/api';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Will add this dependency later
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, token } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit } = useForm<LoginRequest>();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      navigate('/', { replace: true });
+    }
+  }, [token, navigate]);
 
   const onSubmit: SubmitHandler<LoginRequest> = async (data) => {
     setError(null);
     setIsLoading(true);
     try {
       await login(data);
-      navigate('/'); // Redirect to the main designer page on success
+      // No navigation here, the useEffect will handle it.
+      setIsLoading(false);
     } catch (err: any) {
       setError(err.message || 'Failed to login. Please check your credentials.');
       setIsLoading(false);
@@ -29,12 +37,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950 p-4">
+       <div className="flex items-center gap-2 mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">
+          <ShieldCheck className="h-8 w-8 text-blue-500" />
+          <h1>AI-Powered Design Tool</h1>
+        </div>
+      <Card className="w-full max-w-sm border-gray-200 dark:border-gray-800 shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Welcome Back</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account.
+            Sign in to continue to your design canvas.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -47,6 +59,7 @@ export function LoginPage() {
                 placeholder="m@example.com"
                 required
                 {...register('email')}
+                className="dark:bg-gray-900"
               />
             </div>
             <div className="grid gap-2">
@@ -56,11 +69,12 @@ export function LoginPage() {
                 type="password"
                 required
                 {...register('password')}
+                className="dark:bg-gray-900"
               />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+            {error && <p className="text-red-500 text-sm animate-pulse">{error}</p>}
+            <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
         </CardContent>
