@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import 'reactflow/dist/style.css';
 import './index.css';
 import App from './App.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';

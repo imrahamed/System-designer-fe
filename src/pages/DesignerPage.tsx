@@ -1,24 +1,34 @@
-import { useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Excalidraw } from "@excalidraw/excalidraw";
-import type { ExcalidrawElement } from '@excalidraw/excalidraw/types/element/types';
-import type { ExcalidrawAPI } from '@excalidraw/excalidraw/types/types';
+// import type { ExcalidrawElement, AppState, ExcalidrawAPI } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
 import { RightSidebar } from '@/components/RightSidebar';
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { nanoid } from 'nanoid';
 
+// Using any as a workaround for type import errors
+type ExcalidrawElement = any;
+type AppState = any;
+type ExcalidrawAPI = any;
+
 function DesignerPage() {
-  const { excalidrawElements, setExcalidrawElements, componentLibrary } = useCanvasStore();
-  const excalidrawApiRef = useRef<ExcalidrawAPI>(null);
+  const { excalidrawElements, setExcalidrawElements, componentLibrary, setSelectedComponentId } = useCanvasStore();
+  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawAPI | null>(null);
 
   useAutoSave();
 
-  const handleExcalidrawChange = (elements: readonly ExcalidrawElement[]) => {
-    // This will be called on every change, including programmatic changes.
-    // It will also be called when the user draws on the canvas.
-    // This is how we keep our store in sync with the canvas.
+  const handleExcalidrawChange = (
+    elements: readonly ExcalidrawElement[],
+    appState: AppState
+  ) => {
     setExcalidrawElements(elements);
+    const selectedElementIds = Object.keys(appState.selectedElementIds);
+    if (selectedElementIds.length > 0) {
+      setSelectedComponentId(selectedElementIds[0]);
+    } else {
+      setSelectedComponentId(null);
+    }
   };
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -29,17 +39,15 @@ function DesignerPage() {
     (event: React.DragEvent) => {
       event.preventDefault();
       const componentId = event.dataTransfer.getData('application/my-app-component');
-      if (!componentId) return;
+      if (!componentId || !excalidrawAPI) return;
 
       const component = componentLibrary.find((c) => c.id === componentId);
       if (!component) return;
 
-      const api = excalidrawApiRef.current;
-      if (!api) return;
-
-      // This is a guess. The actual API might be different.
-      // The goal is to convert screen coords to scene coords.
-      const { x, y } = api.getSceneCoordinatesFromOffsets(event.clientX, event.clientY);
+      const { x, y } = excalidrawAPI.getSceneCoordinates({
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
 
       const newElement: ExcalidrawElement = {
         id: nanoid(),
@@ -48,16 +56,16 @@ function DesignerPage() {
         y,
         width: 200,
         height: 60,
+        customData: {
+          componentId: component.id,
+          props: { ...component.props },
+        },
         label: {
           text: component.name,
           fontSize: 20,
           verticalAlign: "middle",
           textAlign: "center"
         },
-        customData: {
-            componentId: component.id,
-        },
-        // These are just some default styles.
         strokeColor: '#1e1e1e',
         backgroundColor: 'transparent',
         strokeWidth: 2,
@@ -66,9 +74,7 @@ function DesignerPage() {
         opacity: 100,
         groupIds: [],
         frameId: null,
-        roundness: {
-          type: 3
-        },
+        roundness: { type: 3 },
         seed: Math.floor(Math.random() * 10000),
         version: 1,
         versionNonce: Math.floor(Math.random() * 1000000),
@@ -79,9 +85,9 @@ function DesignerPage() {
         locked: false,
       };
 
-      api.addElements([newElement]);
+      excalidrawAPI.addElements([newElement]);
     },
-    [componentLibrary]
+    [componentLibrary, excalidrawAPI]
   );
 
   return (
@@ -93,20 +99,11 @@ function DesignerPage() {
         onDrop={onDrop}
       >
         <Excalidraw
-          ref={excalidrawApiRef}
+          excalidrawAPI={(api) => setExcalidrawAPI(api)}
           initialData={{
             elements: excalidrawElements,
           }}
           onChange={handleExcalidrawChange}
-          onPointerUpdate={(payload) => {
-            const selectedElementIds = Object.keys(payload.appState.selectedElementIds);
-            if (selectedElementIds.length > 0) {
-              // For now, just take the first selected element.
-              useCanvasStore.getState().setSelectedComponentId(selectedElementIds[0]);
-            } else {
-              useCanvasStore.getState().setSelectedComponentId(null);
-            }
-          }}
         />
       </div>
       <RightSidebar />

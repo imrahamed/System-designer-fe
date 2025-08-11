@@ -1,7 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 // A utility function to get the auth token from wherever it's stored
-// This will be properly implemented in the authentication step
 const getAuthToken = (): string | null => {
   return localStorage.getItem('jwt_token');
 };
@@ -18,13 +17,13 @@ async function request<T>(
 
   const token = getAuthToken();
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = new Headers(options.headers);
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   const config: RequestInit = {
@@ -36,11 +35,9 @@ async function request<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      // Try to parse the error body for more context
       const errorBody = await response.json().catch(() => ({
         message: 'An unknown error occurred.',
       }));
-      // Throw an error object that includes the status and body
       throw {
         status: response.status,
         message: errorBody.message || response.statusText,
@@ -48,7 +45,6 @@ async function request<T>(
       };
     }
 
-    // For 204 No Content, we can't call .json()
     if (response.status === 204) {
       return null as T;
     }
@@ -56,7 +52,6 @@ async function request<T>(
     return (await response.json()) as T;
   } catch (error) {
     console.error(`API request failed: ${config.method || 'GET'} ${url}`, error);
-    // Re-throw the error so it can be caught by the caller
     throw error;
   }
 }

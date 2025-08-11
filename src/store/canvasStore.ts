@@ -1,11 +1,17 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import type { TemporalState } from 'zundo';
-import type { ExcalidrawElement } from '@excalidraw/excalidraw/types/element/types';
+// import type { ExcalidrawElement } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
+import type { Component } from '@/types/api';
+import { MOCK_COMPONENTS } from '@/utils/mock-components';
 import type { ComponentData } from '@/utils/mock-components';
 import { socketService } from '@/services/socket';
 import { saveFullDesign, getDesignById, createDesign as createDesignApi, patchDesign } from '@/services/api';
-import type { Node } from 'reactflow'; // Keep for saving/loading
+
+// Using any as a workaround for type import errors
+type ExcalidrawElement = any;
+
+export type EnrichedComponent = Component & Pick<ComponentData, 'schema' | 'defaultProps' | 'iacSnippet' | 'docs'>;
 
 export interface CursorData {
   userId: string;
@@ -19,7 +25,7 @@ interface TemporalCanvasState {
 }
 
 interface NonTemporalCanvasState {
-  componentLibrary: ComponentData[];
+  componentLibrary: EnrichedComponent[];
   selectedComponentId: string | null;
   aiLoading: boolean;
   aiError: string | null;
@@ -37,6 +43,7 @@ type CanvasActions = {
   fetchComponents: () => Promise<void>;
   setSelectedComponentId: (id: string | null) => void;
   updateElementProps: (elementId: string, props: Record<string, any>) => void;
+  updateDesignTitle: (designId: string, newTitle: string) => Promise<void>;
   executeAIAction: (actionType: string, params?: any) => Promise<void>;
   saveDesign: () => Promise<void>;
   loadDesign: (id: string) => Promise<void>;
@@ -85,6 +92,13 @@ const useInternalCanvasStore = create<FullStore>()(
         set({ excalidrawElements: newElements });
         socketService.emitSceneUpdate(newElements);
       },
+      updateDesignTitle: async (designId: string, newTitle: string) => {
+        try {
+          await patchDesign(designId, [{ op: 'replace', path: '/title', value: newTitle }], `Renamed design to "${newTitle}"`);
+        } catch (error) {
+          console.error("Failed to update design title:", error);
+        }
+      },
       updateCursor: ({ userId, ...cursorData }) => {
         set(state => ({ otherCursors: { ...state.otherCursors, [userId]: cursorData } }));
       },
@@ -97,8 +111,18 @@ const useInternalCanvasStore = create<FullStore>()(
       fetchComponents: async () => {
         const { fetchComponents: fetchComponentsApi } = await import('@/services/api');
         try {
-          const components = await fetchComponentsApi();
-          set({ componentLibrary: components });
+          const componentsFromApi = await fetchComponentsApi();
+          const componentsWithSchema = componentsFromApi.map(apiComponent => {
+            const mockComponent = MOCK_COMPONENTS.find(mc => mc.id === apiComponent.id);
+            return {
+              ...apiComponent,
+              schema: mockComponent?.schema,
+              defaultProps: mockComponent?.defaultProps,
+              iacSnippet: mockComponent?.iacSnippet,
+              docs: mockComponent?.docs,
+            };
+          }) as EnrichedComponent[];
+          set({ componentLibrary: componentsWithSchema });
         } catch (error) {
           console.error("Failed to fetch components:", error);
         }
@@ -112,7 +136,6 @@ const useInternalCanvasStore = create<FullStore>()(
 
         set({ aiLoading: true, aiError: null });
         try {
-          // First, save the current design to ensure the backend has the latest version
           await saveDesign();
 
           const request = {
@@ -127,8 +150,6 @@ const useInternalCanvasStore = create<FullStore>()(
           if (response.success && response.patches) {
             const { applyPatch } = await import('fast-json-patch');
 
-            // The AI agent will return patches for the document stored in the DB.
-            // We need to construct a similar document to apply the patches to.
             const currentSceneString = JSON.stringify(excalidrawElements);
             const docToPatch = {
               nodes: [{
@@ -165,7 +186,7 @@ const useInternalCanvasStore = create<FullStore>()(
         set({ isSaving: true });
         try {
           const sceneData = JSON.stringify(excalidrawElements);
-          const node: Node = {
+          const node: any = {
             id: 'excalidraw-scene',
             type: 'excalidraw',
             position: { x: 0, y: 0 },
@@ -210,7 +231,7 @@ const useInternalCanvasStore = create<FullStore>()(
             excalidrawElements: [],
             designId: newDesign.id,
           });
-          get().temporal.clear();
+          useInternalCanvasStore.temporal.getState().clear();
         } catch (error) {
           console.error("Failed to create new design:", error);
         } finally {

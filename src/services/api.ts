@@ -16,8 +16,7 @@ import type {
   RunAgentRequest,
   RunAgentResponse,
 } from '@/types/api';
-import type { Node, Edge } from 'reactflow';
-import type { JsonPatch } from 'fast-json-patch';
+import type { Operation as JsonPatch } from 'fast-json-patch';
 
 
 // ========== Auth ==========
@@ -139,7 +138,7 @@ export const validateProperties = (
 // We are removing the old saveDesign and loadDesign functions.
 
 // This is the new structure for saving a design
-export const saveFullDesign = (designId: string, nodes: Node[], edges: Edge[]): Promise<Design> => {
+export const saveFullDesign = (designId: string, nodes: any[], edges: any[]): Promise<Design> => {
     const payload: ReplaceDesignRequest = {
         canvas: {
             nodes,
