@@ -5,7 +5,6 @@ import { ComponentPalette } from '@/components/ComponentPalette';
 import { RightSidebar } from '@/components/RightSidebar';
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { nanoid } from 'nanoid';
-import { dequal } from 'dequal';
 
 // Using any as a workaround for type import errors
 type ExcalidrawElement = any;
@@ -30,7 +29,8 @@ function DesignerPage() {
   useEffect(() => {
     if (excalidrawAPI) {
       const sceneElements = excalidrawAPI.getSceneElements();
-      if (!dequal(sceneElements, excalidrawElements)) {
+      // Using JSON.stringify for deep comparison to avoid external dependencies.
+      if (JSON.stringify(sceneElements) !== JSON.stringify(excalidrawElements)) {
         excalidrawAPI.updateScene({ elements: excalidrawElements });
       }
     }
@@ -40,7 +40,12 @@ function DesignerPage() {
     elements: readonly ExcalidrawElement[],
     appState: AppState
   ) => {
-    setExcalidrawElements(elements);
+    // To prevent feedback loop, we can compare the incoming elements
+    // with the ones in the store.
+    if (JSON.stringify(elements) !== JSON.stringify(useCanvasStore.getState().excalidrawElements)) {
+        setExcalidrawElements(elements);
+    }
+
     const selectedElementIds = Object.keys(appState.selectedElementIds);
     if (selectedElementIds.length > 0) {
       setSelectedComponentId(selectedElementIds[0]);
@@ -110,7 +115,7 @@ function DesignerPage() {
   );
 
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full" data-testid="designer-page">
       <ComponentPalette />
       <div
         className="flex-grow h-full"
