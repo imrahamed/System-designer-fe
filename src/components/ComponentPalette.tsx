@@ -5,7 +5,7 @@ import { useCanvasStore } from '@/store/canvasStore';
 import { motion } from 'framer-motion';
 
 const onDragStart = (event: React.DragEvent, componentId: string) => {
-  event.dataTransfer.setData('application/reactflow', componentId);
+  event.dataTransfer.setData('application/my-app-component', componentId);
   event.dataTransfer.effectAllowed = 'move';
 };
 
