@@ -54,12 +54,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginRequest) => {
     const response = await api.login(credentials);
-    localStorage.setItem('jwt_token', response.token);
-    setToken(response.token);
+    localStorage.setItem('jwt_token', response.access_token);
+    setToken(response.access_token);
     // As mentioned, ideally we fetch user data from a /me endpoint.
     // For now, we'll decode the token.
     try {
-        const payload = JSON.parse(atob(response.token.split('.')[1]));
+        const payload = JSON.parse(atob(response.access_token.split('.')[1]));
         setUser({ id: payload.sub, email: payload.email });
     } catch (e) {
         console.error("Invalid token:", e);
