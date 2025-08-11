@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Excalidraw } from "@excalidraw/excalidraw";
-// import type { ExcalidrawElement, AppState, ExcalidrawAPI } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
 import { RightSidebar } from '@/components/RightSidebar';
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { nanoid } from 'nanoid';
+import { dequal } from 'dequal';
 
 // Using any as a workaround for type import errors
 type ExcalidrawElement = any;
@@ -15,8 +15,26 @@ type ExcalidrawAPI = any;
 function DesignerPage() {
   const { excalidrawElements, setExcalidrawElements, componentLibrary, setSelectedComponentId } = useCanvasStore();
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawAPI | null>(null);
+  const excalidrawRef = useRef<ExcalidrawAPI>(null);
 
   useAutoSave();
+
+  useEffect(() => {
+    // @ts-ignore
+    if (excalidrawRef.current) {
+        // @ts-ignore
+        setExcalidrawAPI(excalidrawRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (excalidrawAPI) {
+      const sceneElements = excalidrawAPI.getSceneElements();
+      if (!dequal(sceneElements, excalidrawElements)) {
+        excalidrawAPI.updateScene({ elements: excalidrawElements });
+      }
+    }
+  }, [excalidrawElements, excalidrawAPI]);
 
   const handleExcalidrawChange = (
     elements: readonly ExcalidrawElement[],
@@ -38,8 +56,9 @@ function DesignerPage() {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      if (!excalidrawAPI) return;
       const componentId = event.dataTransfer.getData('application/my-app-component');
-      if (!componentId || !excalidrawAPI) return;
+      if (!componentId) return;
 
       const component = componentLibrary.find((c) => c.id === componentId);
       if (!component) return;
@@ -99,9 +118,9 @@ function DesignerPage() {
         onDrop={onDrop}
       >
         <Excalidraw
-          excalidrawAPI={(api) => setExcalidrawAPI(api)}
+          ref={excalidrawRef as any}
           initialData={{
-            elements: excalidrawElements,
+            elements: useCanvasStore.getState().excalidrawElements,
           }}
           onChange={handleExcalidrawChange}
         />
