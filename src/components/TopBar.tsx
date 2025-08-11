@@ -51,51 +51,51 @@ export function TopBar() {
   const currentDesign = designs.find(d => d.id === designId);
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background p-2 rounded-lg shadow-md border flex items-center gap-2">
-      <Button variant="outline" size="icon" onClick={() => undo()} disabled={pastStates.length === 0} title="Undo">
-        <Undo2 className="h-4 w-4" />
-      </Button>
-      <Button variant="outline" size="icon" onClick={() => redo()} disabled={futureStates.length === 0} title="Redo">
-        <Redo2 className="h-4 w-4" />
-      </Button>
+    <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="icon" onClick={() => undo()} disabled={pastStates.length === 0} title="Undo">
+          <Undo2 className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="icon" onClick={() => redo()} disabled={futureStates.length === 0} title="Redo">
+          <Redo2 className="h-4 w-4" />
+        </Button>
+      </div>
 
-      <div className="border-l h-6 mx-2" />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-48 justify-between">
-            <span>{currentDesign?.title || "Select a Design"}</span>
-            <ChevronsUpDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48">
-          <DropdownMenuLabel>Your Designs</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {designs.map(design => (
-            <DropdownMenuItem key={design.id} onSelect={() => loadDesign(design.id)} disabled={isLoading}>
-              {design.title}
+      <div className="flex-1 flex justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-64 justify-between">
+              <span>{currentDesign?.title || "Select a Design"}</span>
+              <ChevronsUpDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-64">
+            <DropdownMenuLabel>Your Designs</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {designs.map(design => (
+              <DropdownMenuItem key={design.id} onSelect={() => loadDesign(design.id)} disabled={isLoading}>
+                {design.title}
+              </DropdownMenuItem>
+            ))}
+             <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleNewDesign} disabled={isLoading}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              New Design
             </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-      <Button variant="outline" size="icon" onClick={handleNewDesign} disabled={isLoading} title="New Design">
-        <PlusCircle className="h-4 w-4" />
-      </Button>
-
-      <div className="border-l h-6 mx-2" />
-
-      <Button variant="outline" size="icon" onClick={handleSave} disabled={isSaving} title="Save">
-        <Save className="h-4 w-4" />
-      </Button>
-      <TemplatePicker />
-
-      <div className="border-l h-6 mx-2" />
-
-      <ThemeToggle />
-      <Button variant="outline" size="icon" onClick={handleLogout} title="Logout">
-        <LogOut className="h-4 w-4" />
-      </Button>
-    </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="icon" onClick={handleSave} disabled={isSaving} title="Save">
+          <Save className="h-4 w-4" />
+        </Button>
+        <TemplatePicker />
+        <ThemeToggle />
+        <Button variant="outline" size="icon" onClick={handleLogout} title="Logout">
+          <LogOut className="h-4 w-4" />
+        </Button>
+      </div>
+    </header>
   );
 }
