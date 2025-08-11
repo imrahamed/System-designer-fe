@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import type { EdgeChange, NodeChange } from 'reactflow';
 import type { CursorData } from '@/store/canvasStore';
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/types/element/types';
 
 const SOCKET_URL = 'http://localhost:3001';
 
@@ -23,12 +24,8 @@ class SocketService {
   }
 
   // --- Emitters ---
-  public emitNodeChanges(changes: NodeChange[]) {
-    this.socket.emit('node_changes', changes);
-  }
-
-  public emitEdgeChanges(changes: EdgeChange[]) {
-    this.socket.emit('edge_changes', changes);
+  public emitSceneUpdate(elements: readonly ExcalidrawElement[]) {
+    this.socket.emit('scene_update', elements);
   }
 
   public emitCursorPosition(position: { x: number; y: number }) {
@@ -36,12 +33,8 @@ class SocketService {
   }
 
   // --- Listeners ---
-  public onNodeChanges(callback: (changes: NodeChange[]) => void) {
-    this.socket.on('node_changes', callback);
-  }
-
-  public onEdgeChanges(callback: (changes: EdgeChange[]) => void) {
-    this.socket.on('edge_changes', callback);
+  public onSceneUpdate(callback: (elements: readonly ExcalidrawElement[]) => void) {
+    this.socket.on('scene_update', callback);
   }
 
   public onCursorPositionUpdate(callback: (cursorData: CursorData) => void) {
@@ -53,6 +46,8 @@ class SocketService {
   }
 
   private setupEventListeners() {
+    const { useCanvasStore } = await import('@/store/canvasStore');
+
     this.socket.on('connect', () => {
       console.log('Socket.IO connected successfully with ID:', this.socket.id);
     });
@@ -63,6 +58,18 @@ class SocketService {
 
     this.socket.on('connect_error', (error) => {
       console.error('Socket.IO connection error:', error);
+    });
+
+    this.onSceneUpdate((elements) => {
+      useCanvasStore.getState().applyRemoteSceneUpdate(elements);
+    });
+
+    this.onCursorPositionUpdate((cursorData) => {
+      useCanvasStore.getState().updateCursor(cursorData);
+    });
+
+    this.onUserDisconnect((userId) => {
+      useCanvasStore.getState().removeCursor(userId);
     });
   }
 }

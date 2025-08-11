@@ -9,31 +9,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function PropertiesPanel() {
   const {
     selectedComponentId,
-    nodes,
+    excalidrawElements,
     componentLibrary,
-    updateNodeProps,
+    updateElementProps,
   } = useCanvasStore();
 
-  const node = nodes.find((n) => n.id === selectedComponentId);
-  const componentDef = componentLibrary.find(
-    (c) => c.id === node?.data.componentId
-  );
+  const element = excalidrawElements.find((el) => el.id === selectedComponentId);
+  const componentId = element?.customData?.componentId;
+  const componentDef = componentLibrary.find((c) => c.id === componentId);
 
   const handleFormSubmitSuccess = (values: Record<string, any>) => {
-    if (node) {
-      updateNodeProps(node.id, values);
+    if (element) {
+      updateElementProps(element.id, values);
     }
   };
 
-  const formKey = node?.id;
+  const formKey = element?.id;
+  const defaultValues = element?.customData?.props || {};
 
   return (
     <aside className="w-80 bg-muted p-4 border-l overflow-y-auto">
       <h2 className="text-2xl font-bold mb-4">Details</h2>
       <AnimatePresence>
-        {node && componentDef ? (
+        {element && componentDef ? (
           <motion.div
-            key={node.id}
+            key={element.id}
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 50 }}
@@ -41,7 +41,7 @@ export function PropertiesPanel() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>{node.data.label}</CardTitle>
+                <CardTitle>{element.label?.text || componentDef.name}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="properties">
@@ -55,7 +55,7 @@ export function PropertiesPanel() {
                         key={formKey}
                         componentId={componentDef.id}
                         schema={componentDef.schema}
-                        defaultValues={node.data.props}
+                        defaultValues={defaultValues}
                         onSubmitSuccess={handleFormSubmitSuccess}
                       />
                     ) : (
