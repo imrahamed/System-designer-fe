@@ -51,8 +51,8 @@ describe('TopBar', () => {
     });
 
     const buttons = screen.getAllByRole('button');
-    // Undo, Redo, Design Switcher, New Design, Save, Template Picker, Theme Toggle, Logout
-    expect(buttons).toHaveLength(8);
+    // Undo, Redo, Design Switcher, Save, Template Picker, Theme Toggle, Logout
+    expect(buttons).toHaveLength(7);
     expect(screen.getByTitle('Logout')).toBeInTheDocument();
   });
 });

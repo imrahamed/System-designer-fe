@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import DesignerPageWrapper from './pages/DesignerPage';
 import { useCanvasStore } from './store/canvasStore';
-import { Toaster } from '@/components/ui/sonner';
 import type { CursorData } from './store/canvasStore';
 import type { EdgeChange, NodeChange } from 'reactflow';
-import { ThemeProvider } from '@/components/ThemeProvider';
 import { socketService } from './services/socket';
+import { MainLayout } from './components/MainLayout';
 
 function App() {
   const {
@@ -30,12 +29,9 @@ function App() {
   }, [applyRemoteNodeChanges, applyRemoteEdgeChanges, updateCursor, removeCursor]);
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="h-screen w-screen bg-background text-foreground">
-        <DesignerPageWrapper />
-        <Toaster />
-      </div>
-    </ThemeProvider>
+    <MainLayout>
+      <DesignerPageWrapper />
+    </MainLayout>
   );
 }
 

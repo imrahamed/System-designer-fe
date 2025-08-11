@@ -9,7 +9,6 @@ import ReactFlow, {
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
 import { RightSidebar } from '@/components/RightSidebar';
-import { TopBar } from '@/components/TopBar';
 import { OtherCursors } from '@/components/OtherCursors';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useThrottle } from '@/hooks/useThrottle';
@@ -127,7 +126,6 @@ function DesignerPage() {
           <MiniMap />
           <OtherCursors />
         </ReactFlow>
-        <TopBar />
         {menu && (
           <ContextMenu
             top={menu.top}
