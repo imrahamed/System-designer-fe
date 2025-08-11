@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Excalidraw } from "@excalidraw/excalidraw";
 // import type { ExcalidrawElement, AppState, ExcalidrawAPI } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
 import { useCanvasStore } from '../store/canvasStore';
@@ -15,6 +15,7 @@ type ExcalidrawAPI = any;
 function DesignerPage() {
   const { excalidrawElements, setExcalidrawElements, componentLibrary, setSelectedComponentId } = useCanvasStore();
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawAPI | null>(null);
+  const lastElementsRef = useRef<string | null>(null);
 
   useAutoSave();
 
@@ -22,7 +23,12 @@ function DesignerPage() {
     elements: readonly ExcalidrawElement[],
     appState: AppState
   ) => {
-    setExcalidrawElements(elements);
+    const newElementsString = JSON.stringify(elements);
+    if (newElementsString !== lastElementsRef.current) {
+      setExcalidrawElements(elements);
+      lastElementsRef.current = newElementsString;
+    }
+
     const selectedElementIds = Object.keys(appState.selectedElementIds);
     if (selectedElementIds.length > 0) {
       setSelectedComponentId(selectedElementIds[0]);
