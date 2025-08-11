@@ -1,10 +1,8 @@
-import type { Node, Edge } from 'reactflow';
-
 export interface DesignTemplate {
   name: string;
   design: {
-    nodes: Node[];
-    edges: Edge[];
+    nodes: any[];
+    edges: any[];
   };
 }
 

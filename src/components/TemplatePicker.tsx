@@ -9,10 +9,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { LayoutTemplate } from "lucide-react"
 import { MOCK_TEMPLATES } from "@/utils/mock-templates"
-import { useCanvasStore } from "@/store/canvasStore"
 
 export function TemplatePicker() {
-  const loadTemplate = useCanvasStore((state) => state.loadTemplate)
+  const handleLoadTemplate = (design: any) => {
+    // TODO: Re-implement template loading with Excalidraw
+    console.log("Template loading is not implemented yet.", design);
+  };
 
   return (
     <DropdownMenu>
@@ -28,7 +30,8 @@ export function TemplatePicker() {
         {MOCK_TEMPLATES.map((template) => (
           <DropdownMenuItem
             key={template.name}
-            onClick={() => loadTemplate(template.design)}
+            onClick={() => handleLoadTemplate(template.design)}
+            disabled // Temporarily disable until re-implemented
           >
             {template.name}
           </DropdownMenuItem>

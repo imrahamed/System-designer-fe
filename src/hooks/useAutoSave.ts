@@ -4,7 +4,7 @@ import { useCanvasStore } from '@/store/canvasStore';
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 
 export function useAutoSave() {
-  const { nodes, edges, saveDesign, isSaving } = useCanvasStore();
+  const { excalidrawElements, saveDesign, isSaving } = useCanvasStore();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -30,5 +30,5 @@ export function useAutoSave() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [nodes, edges, saveDesign, isSaving]); // Rerun effect when design changes
+  }, [excalidrawElements, saveDesign, isSaving]); // Rerun effect when design changes
 }

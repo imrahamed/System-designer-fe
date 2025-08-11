@@ -1,3 +1,5 @@
+import type { Operation as Patch } from 'fast-json-patch';
+
 // Based on the Postman Collection
 
 // ========== Auth ==========
@@ -41,11 +43,7 @@ export interface CreateDesignRequest {
 }
 
 export interface UpdateDesignRequest {
-  patch: {
-    op: 'replace' | 'add' | 'remove';
-    path: string;
-    value: any;
-  }[];
+  patch: Patch[];
   message: string;
 }
 
@@ -61,7 +59,7 @@ export interface ReplaceDesignRequest {
 
 // ========== Components ==========
 export interface Component {
-  id: string;
+  id:string;
   name: string;
   category: string;
   tags: string[];
@@ -120,8 +118,6 @@ export interface SaveMemoryRequest {
 
 
 // ========== AI Features ==========
-import type { Patch } from 'fast-json-patch';
-
 export interface RunAgentRequest {
   goal: string;
   designId: string;
