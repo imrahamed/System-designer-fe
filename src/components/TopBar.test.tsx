@@ -31,6 +31,7 @@ describe('TopBar', () => {
       loadDesign: vi.fn(),
       createNewDesign: vi.fn(),
       designId: 'test-id',
+      otherCursors: {},
     });
     (useTemporalStore as any).mockReturnValue({
       undo: vi.fn(),
@@ -51,8 +52,8 @@ describe('TopBar', () => {
     });
 
     const buttons = screen.getAllByRole('button');
-    // Undo, Redo, Design Switcher, Save, Template Picker, Theme Toggle, Logout
-    expect(buttons).toHaveLength(7);
+    // Undo, Redo, Design Switcher, New Design, Save, Template Picker, Theme Toggle, Logout
+    expect(buttons).toHaveLength(8);
     expect(screen.getByTitle('Logout')).toBeInTheDocument();
   });
 });
