@@ -9,11 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sparkles, Save, FolderOpen, Undo2, Redo2, ShieldCheck, Wand, PlusCircle, ChevronsUpDown } from 'lucide-react';
+import { LogOut, Save, PlusCircle, ChevronsUpDown, Undo2, Redo2 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { TemplatePicker } from './TemplatePicker';
 import * as api from '@/services/api';
 import type { Design } from '@/types/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function TopBar() {
   const {
@@ -26,11 +28,12 @@ export function TopBar() {
   } = useCanvasStore();
   const { undo, redo, pastStates, futureStates } = useTemporalStore((state) => state);
   const [designs, setDesigns] = useState<Design[]>([]);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch designs when the component mounts
     api.getAllDesigns().then(setDesigns).catch(console.error);
-  }, [designId]); // Refetch when designId changes, e.g., after creating a new one
+  }, [designId]);
 
   const handleSave = () => saveDesign();
   const handleNewDesign = () => {
@@ -40,11 +43,15 @@ export function TopBar() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const currentDesign = designs.find(d => d.id === designId);
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background p-2 rounded-lg shadow-md border flex items-center gap-2">
-      {/* History Actions */}
       <Button variant="outline" size="icon" onClick={() => undo()} disabled={pastStates.length === 0} title="Undo">
         <Undo2 className="h-4 w-4" />
       </Button>
@@ -54,7 +61,6 @@ export function TopBar() {
 
       <div className="border-l h-6 mx-2" />
 
-      {/* Project Management */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-48 justify-between">
@@ -79,7 +85,6 @@ export function TopBar() {
 
       <div className="border-l h-6 mx-2" />
 
-      {/* Save & Templates */}
       <Button variant="outline" size="icon" onClick={handleSave} disabled={isSaving} title="Save">
         <Save className="h-4 w-4" />
       </Button>
@@ -87,8 +92,10 @@ export function TopBar() {
 
       <div className="border-l h-6 mx-2" />
 
-      {/* Theme Toggle */}
       <ThemeToggle />
+      <Button variant="outline" size="icon" onClick={handleLogout} title="Logout">
+        <LogOut className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
