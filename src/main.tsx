@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';
-// import { ProtectedRoute } from './components/ProtectedRoute.tsx';
+import { ProtectedRoute } from './components/ProtectedRoute.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { ThemeProvider } from './components/ThemeProvider.tsx';
 
@@ -15,7 +15,13 @@ const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <App />,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: '/',
+        element: <App />,
+      },
+    ],
   },
 ]);
 
