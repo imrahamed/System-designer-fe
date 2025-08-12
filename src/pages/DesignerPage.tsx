@@ -3,7 +3,6 @@ import { Tldraw, useEditor, createShapeId, getSnapshot, createTLStore, loadSnaps
 import type { TLEditorComponents } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { useCanvasStore } from '../store/canvasStore';
-import { ComponentPalette } from '@/components/ComponentPalette';
 import { RightSidebar } from '@/components/RightSidebar';
 import { useAutoSave } from '@/hooks/useAutoSave';
 
@@ -115,7 +114,6 @@ function DesignerPage() {
 
   return (
     <div className="flex h-full w-full" data-testid="designer-page">
-      <ComponentPalette />
       <div className="flex-grow h-full" style={{ position: 'relative' }}>
         <Tldraw store={store} components={components}>
             <StateManager />

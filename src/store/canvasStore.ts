@@ -2,8 +2,9 @@ import { create } from 'zustand';
 import { temporal } from 'zundo';
 import type { TemporalState } from 'zundo';
 // import type { ExcalidrawElement } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
-import type { Component } from '@/types/api';
+import type { Component, Template } from '@/types/api';
 import { MOCK_COMPONENTS } from '@/utils/mock-components';
+import { createShapeId } from 'tldraw';
 import type { ComponentData } from '@/utils/mock-components';
 import { socketService } from '@/services/socket';
 import { saveFullDesign, getDesignById, createDesign as createDesignApi, patchDesign } from '@/services/api';
@@ -26,6 +27,7 @@ interface TemporalCanvasState {
 
 interface NonTemporalCanvasState {
   componentLibrary: EnrichedComponent[];
+  templates: Template[];
   selectedComponentId: string | null;
   aiLoading: boolean;
   aiError: string | null;
@@ -41,6 +43,9 @@ type CanvasActions = {
   setExcalidrawElements: (elements: readonly ExcalidrawElement[]) => void;
   applyRemoteSceneUpdate: (elements: readonly ExcalidrawElement[]) => void;
   fetchComponents: () => Promise<void>;
+  fetchTemplates: () => Promise<void>;
+  applyTemplate: (template: Template) => void;
+  addComponent: (componentId: string) => void;
   setSelectedComponentId: (id: string | null) => void;
   updateElementProps: (elementId: string, props: Record<string, any>) => void;
   updateDesignTitle: (designId: string, newTitle: string) => Promise<void>;
@@ -60,6 +65,7 @@ const useInternalCanvasStore = create<FullStore>()(
       // --- Initial State ---
       excalidrawElements: [],
       componentLibrary: [],
+      templates: [],
       selectedComponentId: null,
       aiLoading: false,
       aiError: null,
@@ -125,6 +131,81 @@ const useInternalCanvasStore = create<FullStore>()(
           set({ componentLibrary: componentsWithSchema });
         } catch (error) {
           console.error("Failed to fetch components:", error);
+        }
+      },
+      fetchTemplates: async () => {
+        const { getAllTemplates } = await import('@/services/api');
+        try {
+          const templatesFromApi = await getAllTemplates();
+          set({ templates: templatesFromApi });
+        } catch (error) {
+          console.error("Failed to fetch templates:", error);
+        }
+      },
+      applyTemplate: (template: Template) => {
+        const { excalidrawElements, componentLibrary } = get();
+
+        const newElements = [...excalidrawElements];
+
+        let currentX = 200;
+        let currentY = 200;
+        const gridGap = 250;
+        const elementsPerRow = 4;
+        let elementsInCurrentRow = 0;
+
+        template.components.forEach((templateComponent) => {
+          const componentDef = componentLibrary.find(c => c.id === templateComponent.componentId);
+          if (componentDef) {
+            const newShape = {
+              id: createShapeId(),
+              type: 'geo',
+              x: currentX,
+              y: currentY,
+              props: {
+                w: 200,
+                h: 60,
+                text: componentDef.name,
+                geo: 'rectangle',
+                ...templateComponent.props,
+              },
+            };
+            newElements.push(newShape as ExcalidrawElement);
+
+            elementsInCurrentRow++;
+            if (elementsInCurrentRow >= elementsPerRow) {
+              elementsInCurrentRow = 0;
+              currentX = 200;
+              currentY += 100;
+            } else {
+              currentX += gridGap;
+            }
+          }
+        });
+
+        set({ excalidrawElements: newElements });
+        socketService.emitSceneUpdate(newElements);
+      },
+      addComponent: (componentId: string) => {
+        const { excalidrawElements, componentLibrary } = get();
+        const componentDef = componentLibrary.find(c => c.id === componentId);
+
+        if (componentDef) {
+          const newShape = {
+            id: createShapeId(),
+            type: 'geo',
+            x: 400,
+            y: 400,
+            props: {
+              w: 200,
+              h: 60,
+              text: componentDef.name,
+              geo: 'rectangle',
+            },
+          };
+
+          const newElements = [...excalidrawElements, newShape as ExcalidrawElement];
+          set({ excalidrawElements: newElements });
+          socketService.emitSceneUpdate(newElements);
         }
       },
       executeAIAction: async (actionType: string, params?: any) => {

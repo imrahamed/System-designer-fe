@@ -13,6 +13,7 @@ import {
 import { LogOut, Save, PlusCircle, ChevronsUpDown, Undo2, Redo2 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { TemplatePicker } from './TemplatePicker';
+import { ComponentPicker } from './ComponentPicker';
 import * as api from '@/services/api';
 import type { Design } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -146,6 +147,7 @@ export function TopBar() {
         <Button variant="outline" size="icon" onClick={handleSave} disabled={isSaving} title="Save">
           <Save className="h-4 w-4" />
         </Button>
+        <ComponentPicker />
         <TemplatePicker />
         <ThemeToggle />
         <Button variant="outline" size="icon" onClick={handleLogout} title="Logout">
