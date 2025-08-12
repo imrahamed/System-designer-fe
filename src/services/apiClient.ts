@@ -9,51 +9,24 @@ interface RequestOptions extends RequestInit {
   // We can add custom options here if needed
 }
 
+// Mock implementation
 async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`--- MOCK API CALL: ${options.method || 'GET'} ${endpoint} ---`);
 
-  const token = getAuthToken();
-
-  const headers = new Headers(options.headers);
-  if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
+  if (endpoint === '/components') {
+    const { MOCK_COMPONENTS } = await import('@/utils/mock-components');
+    return MOCK_COMPONENTS as any;
   }
 
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+  if (endpoint === '/designs') {
+    return [] as any;
   }
 
-  const config: RequestInit = {
-    ...options,
-    headers,
-  };
-
-  try {
-    const response = await fetch(url, config);
-
-    if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({
-        message: 'An unknown error occurred.',
-      }));
-      throw {
-        status: response.status,
-        message: errorBody.message || response.statusText,
-        body: errorBody,
-      };
-    }
-
-    if (response.status === 204) {
-      return null as T;
-    }
-
-    return (await response.json()) as T;
-  } catch (error) {
-    console.error(`API request failed: ${config.method || 'GET'} ${url}`, error);
-    throw error;
-  }
+  // Return empty object for other calls to prevent errors
+  return Promise.resolve({} as T);
 }
 
 // Helper methods for common HTTP verbs

@@ -59,7 +59,7 @@ const useInternalCanvasStore = create<FullStore>()(
     (set, get) => ({
       // --- Initial State ---
       excalidrawElements: [],
-      componentLibrary: [],
+      componentLibrary: MOCK_COMPONENTS as any,
       selectedComponentId: null,
       aiLoading: false,
       aiError: null,
@@ -109,23 +109,8 @@ const useInternalCanvasStore = create<FullStore>()(
         });
       },
       fetchComponents: async () => {
-        const { fetchComponents: fetchComponentsApi } = await import('@/services/api');
-        try {
-          const componentsFromApi = await fetchComponentsApi();
-          const componentsWithSchema = componentsFromApi.map(apiComponent => {
-            const mockComponent = MOCK_COMPONENTS.find(mc => mc.id === apiComponent.id);
-            return {
-              ...apiComponent,
-              schema: mockComponent?.schema,
-              defaultProps: mockComponent?.defaultProps,
-              iacSnippet: mockComponent?.iacSnippet,
-              docs: mockComponent?.docs,
-            };
-          }) as EnrichedComponent[];
-          set({ componentLibrary: componentsWithSchema });
-        } catch (error) {
-          console.error("Failed to fetch components:", error);
-        }
+        // This is now mocked, but we can leave the function here.
+        // It won't be called if the initial state is populated.
       },
       executeAIAction: async (actionType: string, params?: any) => {
         const { designId, excalidrawElements, saveDesign } = get();
