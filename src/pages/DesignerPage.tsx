@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Tldraw, useEditor, createShapeId, getSnapshot, TLStore, createTLStore, loadSnapshot, TLEditorComponents } from 'tldraw';
+import { Tldraw, useEditor, createShapeId, getSnapshot, createTLStore, loadSnapshot } from 'tldraw';
+import type { TLEditorComponents } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { useCanvasStore } from '../store/canvasStore';
 import { ComponentPalette } from '@/components/ComponentPalette';
@@ -18,7 +19,7 @@ const StateManager = () => {
                 // Only listen to changes made by the user to prevent feedback loops.
                 if (entry.source === 'user') {
                     const snapshot = getSnapshot(editor.store);
-                    const shapes = Object.values(snapshot.store).filter((r: any) => r.typeName === 'shape');
+                    const shapes = Object.values(snapshot).filter((r: any) => r.typeName === 'shape');
                     setExcalidrawElements(shapes as any);
 
                     const selectedShapeIds = editor.getSelectedShapeIds();
@@ -101,9 +102,13 @@ function DesignerPage() {
 
   const [store] = useState(() => {
     const newStore = createTLStore();
-    const initialSnapshot = { store: useCanvasStore.getState().excalidrawElements as any };
-    if (initialSnapshot.store && Object.keys(initialSnapshot.store).length > 0) {
-        loadSnapshot(newStore, initialSnapshot);
+    const initialElements = useCanvasStore.getState().excalidrawElements;
+    if (initialElements && Object.keys(initialElements).length > 0) {
+        const snapshot = {
+            store: initialElements as any,
+            schema: newStore.schema.serialize(),
+        }
+        loadSnapshot(newStore, snapshot);
     }
     return newStore;
   });
