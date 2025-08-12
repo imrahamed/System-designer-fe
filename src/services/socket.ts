@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { useCanvasStore } from '@/store/canvasStore';
 import type { CursorData } from '@/store/canvasStore';
 
 // Using any as a workaround for type import errors
@@ -6,13 +7,24 @@ type ExcalidrawElement = any;
 
 const SOCKET_URL = 'http://localhost:3001';
 
+class MockSocket {
+  on(event: string, callback: (...args: any[]) => void) {}
+  emit(event: string, ...args: any[]) {}
+  connect() {}
+  disconnect() {}
+}
+
 class SocketService {
-  public socket: Socket;
+  public socket: Socket | MockSocket;
 
   constructor() {
-    this.socket = io(SOCKET_URL, {
-      autoConnect: false,
-    });
+    if (process.env.NODE_ENV === 'production') {
+      this.socket = io(SOCKET_URL, {
+        autoConnect: false,
+      });
+    } else {
+      this.socket = new MockSocket();
+    }
     this.setupEventListeners();
   }
 
@@ -46,18 +58,16 @@ class SocketService {
     this.socket.on('user_disconnected', callback);
   }
 
-  private async setupEventListeners() {
-    const { useCanvasStore } = await import('@/store/canvasStore');
-
+  private setupEventListeners() {
     this.socket.on('connect', () => {
-      console.log('Socket.IO connected successfully with ID:', this.socket.id);
+      console.log('Socket.IO connected successfully with ID:', (this.socket as Socket).id);
     });
 
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', (reason: any) => {
       console.log('Socket.IO disconnected:', reason);
     });
 
-    this.socket.on('connect_error', (error) => {
+    this.socket.on('connect_error', (error: any) => {
       console.error('Socket.IO connection error:', error);
     });
 

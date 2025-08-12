@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import type { TemporalState } from 'zundo';
+import { applyPatch } from 'fast-json-patch';
 // import type { ExcalidrawElement } from '@excalidraw/excalidraw/dist/excalidraw/src/types';
 import type { Component, Template } from '@/types/api';
 import { MOCK_COMPONENTS } from '@/utils/mock-components';
 import { createShapeId } from 'tldraw';
 import type { ComponentData } from '@/utils/mock-components';
 import { socketService } from '@/services/socket';
-import { saveFullDesign, getDesignById, createDesign as createDesignApi, patchDesign } from '@/services/api';
+import { saveFullDesign, getDesignById, createDesign as createDesignApi, patchDesign, runAgent, fetchComponents as fetchComponentsApi } from '@/services/api';
 
 // Using any as a workaround for type import errors
 type ExcalidrawElement = any;
@@ -115,7 +116,6 @@ const useInternalCanvasStore = create<FullStore>()(
         });
       },
       fetchComponents: async () => {
-        const { fetchComponents: fetchComponentsApi } = await import('@/services/api');
         try {
           const componentsFromApi = await fetchComponentsApi();
           const componentsWithSchema = componentsFromApi.map(apiComponent => {
@@ -225,12 +225,9 @@ const useInternalCanvasStore = create<FullStore>()(
             constraints: params,
           };
 
-          const { runAgent } = await import('@/services/api');
           const response = await runAgent(actionType.toLowerCase(), request);
 
           if (response.success && response.patches) {
-            const { applyPatch } = await import('fast-json-patch');
-
             const currentSceneString = JSON.stringify(excalidrawElements);
             const docToPatch = {
               nodes: [{
