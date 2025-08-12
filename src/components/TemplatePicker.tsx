@@ -1,42 +1,38 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { LayoutTemplate } from "lucide-react"
-import { MOCK_TEMPLATES } from "@/utils/mock-templates"
+} from '@/components/ui/dropdown-menu';
+import { getAllTemplates } from '@/services/api';
+import type { Template } from '@/types/api';
+import { useCanvasStore } from '@/store/canvasStore';
 
 export function TemplatePicker() {
-  const handleLoadTemplate = (design: any) => {
-    // TODO: Re-implement template loading with Excalidraw
-    console.log("Template loading is not implemented yet.", design);
-  };
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const applyTemplate = useCanvasStore((state) => state.applyTemplate);
+
+  useEffect(() => {
+    getAllTemplates().then(setTemplates).catch(console.error);
+  }, []);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <LayoutTemplate className="h-4 w-4 mr-2" />
-          Templates
-        </Button>
+        <Button variant="outline">Templates</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>Load a Template</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {MOCK_TEMPLATES.map((template) => (
+        {templates.map((template) => (
           <DropdownMenuItem
-            key={template.name}
-            onClick={() => handleLoadTemplate(template.design)}
-            disabled // Temporarily disable until re-implemented
+            key={template.id}
+            onSelect={() => applyTemplate(template)}
           >
             {template.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
