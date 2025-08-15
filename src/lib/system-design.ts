@@ -1,4 +1,4 @@
-export const systemDesign = {
+export const systemDesign: any = {
   "type": "excalidrawlib",
   "version": 2,
   "source": "http://localhost:5173",

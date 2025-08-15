@@ -1,13 +1,24 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Excalidraw, Main, Sidebar } from '@excalidraw/excalidraw';
-import { ExcalidrawAPIRef } from '@excalidraw/excalidraw/types/types';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  type ComponentProps,
+} from 'react';
+import { Excalidraw, Sidebar } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { systemDesign } from '../lib/system-design';
+
+type ExcalidrawApi = ComponentProps<typeof Excalidraw>['excalidrawAPI'];
+type ExcalidrawImperativeAPIRef = ExcalidrawApi extends
+  | ((api: infer T) => void)
+  | undefined
+  ? T
+  : never;
 
 type Tab = 'interview' | 'ai-tools' | 'feedback';
 
 const ExcalidrawWrapper: React.FC = () => {
-  const excalidrawAPIRef = useRef<ExcalidrawAPIRef | null>(null);
+  const excalidrawAPIRef = useRef<ExcalidrawImperativeAPIRef | null>(null);
   const isAIUpdateInProgress = useRef(false);
 
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -18,10 +29,10 @@ const ExcalidrawWrapper: React.FC = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('interview');
 
-  const handleApiReady = useCallback((api: ExcalidrawAPIRef) => {
+  const handleApiReady = useCallback((api: ExcalidrawImperativeAPIRef) => {
     excalidrawAPIRef.current = api;
     try {
-      api.updateLibrary(systemDesign);
+      api.updateLibrary({libraryItems:systemDesign.libraryItems});
     } catch (error) {
       console.error('Failed to load local Excalidraw library:', error);
     }
@@ -153,18 +164,16 @@ const ExcalidrawWrapper: React.FC = () => {
   return (
     <div style={{ height: '100vh' }}>
       <Excalidraw excalidrawAPI={handleApiReady}>
-        <Main>
-          <Sidebar>
-            <div style={{ padding: '10px' }}>
-              <div style={{ marginBottom: '10px' }}>
-                <button onClick={() => setActiveTab('interview')} disabled={activeTab === 'interview'}>Interview</button>
-                <button onClick={() => setActiveTab('ai-tools')} disabled={activeTab === 'ai-tools'}>AI Tools</button>
-                <button onClick={() => setActiveTab('feedback')} disabled={activeTab === 'feedback'}>Feedback</button>
-              </div>
-              <div>{renderContent()}</div>
+        <Sidebar name="panel">
+          <div style={{ padding: '10px' }}>
+            <div style={{ marginBottom: '10px' }}>
+              <button onClick={() => setActiveTab('interview')} disabled={activeTab === 'interview'}>Interview</button>
+              <button onClick={() => setActiveTab('ai-tools')} disabled={activeTab === 'ai-tools'}>AI Tools</button>
+              <button onClick={() => setActiveTab('feedback')} disabled={activeTab === 'feedback'}>Feedback</button>
             </div>
-          </Sidebar>
-        </Main>
+            <div>{renderContent()}</div>
+          </div>
+        </Sidebar>
       </Excalidraw>
     </div>
   );
