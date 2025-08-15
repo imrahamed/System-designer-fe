@@ -6,7 +6,7 @@ import React, {
 } from 'react';
 import { Excalidraw, Sidebar } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
-import { systemDesign } from '../lib/system-design';
+// import { systemDesign } from '../lib/system-design';
 
 type ExcalidrawApi = ComponentProps<typeof Excalidraw>['excalidrawAPI'];
 type ExcalidrawImperativeAPIRef = ExcalidrawApi extends
@@ -31,11 +31,11 @@ const ExcalidrawWrapper: React.FC = () => {
 
   const handleApiReady = useCallback((api: ExcalidrawImperativeAPIRef) => {
     excalidrawAPIRef.current = api;
-    try {
-      api.updateLibrary({libraryItems:systemDesign.libraryItems});
-    } catch (error) {
-      console.error('Failed to load local Excalidraw library:', error);
-    }
+    // try {
+    //   api.updateLibrary({libraryItems:systemDesign.libraryItems});
+    // } catch (error) {
+    //   console.error('Failed to load local Excalidraw library:', error);
+    // }
   }, []);
 
   const handleStartInterview = async () => {
