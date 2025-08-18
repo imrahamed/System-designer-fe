@@ -23,6 +23,8 @@ const ExcalidrawWrapper: React.FC = () => {
   const [interviewQuestion, setInterviewQuestion] = useState(
     "Your interview question will appear here."
   );
+  const [interviewDescription, setInterviewDescription] = useState("");
+  const [interviewRequirements, setInterviewRequirements] = useState<string[]>([]);
   const [userInputText, setUserInputText] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showTextInput, setShowTextInput] = useState(false);
@@ -52,7 +54,10 @@ const ExcalidrawWrapper: React.FC = () => {
       if (!response.ok) throw new Error("Failed to start interview");
 
       const { question, initialDiagram } = await response.json();
-      setInterviewQuestion(question);
+      setInterviewQuestion(question.title);
+      setInterviewDescription(question.description);
+      setInterviewRequirements(question.requirements.map((req: string) => req));
+
       isAIUpdateInProgress.current = true;
       excalidrawAPIRef.current?.resetScene();
       excalidrawAPIRef.current?.updateScene({ elements: initialDiagram });
@@ -350,8 +355,26 @@ const ExcalidrawWrapper: React.FC = () => {
                   color: "#666",
                 }}
               >
-               <ReactMarkdown>{interviewQuestion}</ReactMarkdown>
+                <ReactMarkdown>{interviewQuestion}</ReactMarkdown>
               </div>
+              {interviewDescription && (
+                <div style={{ marginTop: "10px", color: "#666" }}>
+                  <strong>Description:</strong>
+                  <ReactMarkdown>{interviewDescription}</ReactMarkdown>
+                </div>
+              )}
+              {interviewRequirements.length > 0 && (
+                <div style={{ marginTop: "10px", color: "#666" }}>
+                  <strong>Requirements:</strong>
+                  <ul>
+                    {interviewRequirements.map((req, index) => (
+                      <li key={index}>
+                        <ReactMarkdown>{req}</ReactMarkdown>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Status Display */}
